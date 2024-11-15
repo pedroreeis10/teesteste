@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+        <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ação Solidária | Paróquia São Maximiliano Maria Kolbe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+                body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column; /* Adicionado para garantir que o footer fique embaixo */
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh; /* Garantir que a altura mínima seja 100% da tela */
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1; /* Isso garante que a área principal cresça e empurre o footer para o fundo */
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+            text-align: left;
+        }
+
+        select, input[type="number"], input[type="text"], button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        .thank-you-message {
+            display: none;
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .error-message {
+            display: none;
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s ease-in-out infinite, pulse 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons button {
+            flex: 1;
+            margin: 0 5px;
+            background-color: #6c757d;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .tab-buttons button:hover {
+            background-color: #5a6268;
+            transform: scale(1.05);
+        }
+
+        .tab-buttons button.active {
+            background-color: #007bff;
+            transform: scale(1.05);
+        }
+
+        .tab-buttons button:focus {
+            outline: none;
+        }
+
+        .item-list {
+            margin-top: 20px;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .export-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Responsividade para dispositivos móveis */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button,
+            select,
+            input {
+                font-size: 14px;
+            }
+
+            .tab-buttons button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            table th, table td {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Ajuste para tablets (largura entre 600px e 1024px) */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .container {
+                width: 80%;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            button,
+            select,
+            input {
+                font-size: 15px;
+            }
+        }
+        /* Melhoria na disposição das imagens */
+                /* Seção das Logos */
+                .logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* Aumento do espaço entre as imagens */
+            margin-bottom: 20px; /* Menos espaçamento abaixo */
+            flex-wrap: wrap; /* Ajusta para telas menores */
+            padding: 10px; /* Espaço interno reduzido */
+        }
+
+        .logos img {
+            max-width: 300px; /* Aumento do tamanho máximo das imagens */
+            height: auto; /* Mantém a proporção da imagem */
+            border-radius: 10px; /* Bordas arredondadas para um visual mais suave */
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave para dar profundidade */
+            margin: 8px; /* Espaço entre as imagens */
+            object-fit: contain; /* Garante que a imagem ocupe o máximo da área sem distorcer */
+            filter: brightness(1); /* Sem efeito de brilho */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transições suaves */
+        }
+
+        /* Efeito ao passar o mouse: */
+        .logos img:hover {
+            transform: scale(1.05); /* Aumento suave ao passar o mouse */
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15); /* Sombra mais destacada ao passar o mouse */
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 600px) {
+            .logos img {
+                max-width: 240px; /* Ajuste o tamanho das imagens em telas pequenas */
+                margin: 5px; /* Menor espaçamento entre as imagens */
+            }
+        }
+
+        /* Ajustes para tablets (largura entre 600px e 1024px) */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .logos img {
+                max-width: 270px; /* Ajuste o tamanho para tablets */
+            }
+        }
+
+        /* Ajuste para telas grandes */
+        @media (min-width: 1200px) {
+            .logos img {
+                max-width: 350px; /* Tamanho máximo maior em telas grandes */
+            }
+        }
+        /* Seção do Footer */
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 10px 0; /* Menor espaçamento */
+            font-size: 12px; /* Menor tamanho de fonte */
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border-top: 1px solid #ddd;
+            margin-top: 0px; /* Remover margem superior */
+        }
+
+        /* Seção de Realização */
+        .realizacao-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 5px; /* Espaço mínimo */
+        }
+
+        .logo-realizacao {
+            max-width: 120px; /* Ajuste para tamanho menor */
+            height: auto;
+            margin-bottom: 5px; /* Menor margem */
+        }
+
+        .legendas {
+            text-align: center;
+            font-size: 12px; /* Menor tamanho de fonte */
+        }
+
+        .legendas p {
+            margin: 3px 0; /* Menor espaço entre as linhas de texto */
+        }
+
+        /* Seção da Ação Solidária */
+        #acao-solidaria {
+            background-color: #f9f9f9;
+            padding: 10px 5px; /* Espaçamento mínimo ao redor do conteúdo */
+            text-align: center;
+            margin: 10px 0; /* Menos espaço superior e inferior */
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra bem sutil */
+        }
+
+        #acao-solidaria h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px; /* Menor tamanho para o título */
+            color: #e74c3c;
+            margin-bottom: 5px; /* Menor espaço abaixo do título */
+            text-transform: uppercase;
+            letter-spacing: 1px; /* Menor espaçamento entre as letras */
+        }
+
+        #acao-solidaria p {
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px; /* Menor tamanho de fonte */
+            color: #333;
+            line-height: 1.3; /* Menor espaçamento entre as linhas */
+            max-width: 650px; /* Largura mais estreita */
+            margin: 0 auto;
+            padding: 5px 10px; /* Menos espaço ao redor do texto */
+        }
+        footer {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 13px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-top: 1px solid #ddd;
+    margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Título -->
+        <h1><i class="fas fa-hands-helping"></i> Ação Solidária | Paróquia São Maximiliano Maria Kolbe</h1>
+        <!-- Imagens das Logos -->
+        <div class="logos">
+            <img src="imagens/logo_sopao.png" alt="Logo Sopão" class="logo">
+            <img src="imagens/logo_banho.png" alt="Logo Banho Solidário" class="logo">
+        </div>
+        <section id="acao-solidaria">
+            <div class="acao-container">
+                <h2>Participe da nossa Ação Solidária!</h2>
+                <p>Convidamos toda a comunidade para se unir em um gesto de amor e solidariedade. No dia 19 de outubro (sábado), teremos atividades em prol dos nossos irmãos e irmãs em situação de vulnerabilidade social. Junte-se a nós e faça a diferença na vida de quem precisa!</p>
+            </div>
+        </section>        
+        <div class="tab-buttons">
+            <button onclick="showTab('registrar-doacao')" id="tab-registrar-doacao"><i class="fas fa-donate"></i> Registrar Doação</button>
+            <button onclick="checkPasswordAndShowTab('historico-doacoes')" id="tab-historico-doacoes"><i class="fas fa-history"></i> Histórico de Doações</button>
+            <button onclick="showTab('totalizador-doacoes')" id="tab-totalizador-doacoes"><i class="fas fa-calculator"></i> Totalizador de Doações</button>
+        </div>
+
+        <div id="registrar-doacao" class="tab-content active">
+            <label for="nome"><i class="fas fa-user"></i> Nome:</label>
+            <input type="text" id="nome" placeholder="Digite seu nome">
+
+            <label for="telefone"><i class="fas fa-phone"></i> Telefone:</label>
+            <input type="text" id="telefone" placeholder="Digite seu telefone">
+
+            <label for="comunidade"><i class="fas fa-users"></i> Selecione a Comunidade:</label>
+            <select id="comunidade">
+                <option value="">Escolha uma comunidade</option>
+                <option value="matriz">Matriz</option>
+                <option value="nsa-gracas-sao-jose">N.Sa. das Graças e São José</option>
+                <option value="nsa-martires">N.Sa. Dos Mártires</option>
+                <option value="sj-cupertino-nsa-fatima">S.J. de Cupertino e N.Sa. de Fátima</option>
+                <option value="outras">Outras</option>
+            </select>
+
+            <label for="tipo-doacao"><i class="fas fa-gift"></i> Escolha Ação Solidária:</label>
+            <select id="tipo-doacao" onchange="exibirItens()">
+                <option value="">Selecione uma ação</option>
+                <option value="banho">Banho Solidário</option>
+                <option value="sopao">Sopão Solidário</option>
+            </select>
+
+            <div id="itens-faltantes" class="item-list" style="display: none;">
+                <h4><i class="fas fa-box-open"></i> Itens Faltantes:</h4>
+                <table id="tabela-itens-faltantes">
+                    <thead>
+                        <tr>
+                            <th>Nome do Item</th>
+                            <th>Quantidade Necessária</th>
+                            <th>Unidade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-itens-faltantes">
+                        <!-- Conteúdo gerado dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <label for="item-doacao">Escolha o item:</label>
+            <select id="item-doacao" disabled onchange="habilitarQuantidade()">
+                <option value="">Selecione um item</option>
+            </select>
+
+            <label for="quantidade">Quantidade:</label>
+            <input type="number" id="quantidade" min="1" disabled>
+
+            <button onclick="registrarDoacao()">Registrar Doação</button>
+            <div class="error-message" id="error-message"></div>
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+            </div>
+            <div class="thank-you-message" id="thank-you-message"></div>
+        </div>
+
+        <div id="historico-doacoes" class="tab-content">
+            <h2>Histórico de Doações</h2>
+            <p>Aqui será exibido o histórico de todas as doações registradas.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Comunidade</th>
+                            <th>Tipo de Ação</th>
+                            <th>Item</th>
+                            <th>Quantidade</th>
+                            <th>Unidade</th> <!-- Nova coluna Unidade -->
+                        </tr>
+                    </thead>
+                    <tbody id="historico-lista">
+                        <!-- O conteúdo será preenchido dinamicamente -->
+                    </tbody>
+                </table>
+                <button onclick="exportToCSV('historico-lista', 'historico_doacoes.csv')">Exportar para CSV</button>
+            </div>
+        </div>
+
+        <div id="totalizador-doacoes" class="tab-content">
+            <h2><i class="fas fa-chart-pie"></i> Totalizador de Doações</h2>
+            <p>Aqui está o total de doações feitas, incluindo as quantidades faltantes para completar as necessidades.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantidade Necessária</th>
+                            <th>Quantidade Doada</th>
+                        </tr>
+                    </thead>
+                    <tbody id="totalizador-lista">
+                        <!-- Conteúdo gerado dinamicamente -->
+                    </tbody>
+                </table>
+                <button onclick="exportToCSV('totalizador-lista', 'totalizador.csv')">Exportar Totalizador para CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let doacoes = {
+        'banho': [
+            { 'item': 'Toalha de Banho', 'necessario': 100, 'doado': 0 },
+            { 'item': 'Sabonete', 'necessario': 200, 'doado': 0 }
+        ],
+        'sopao': [
+            { 'item': 'Arroz', 'necessario': 50, 'doado': 0 },
+            { 'item': 'Feijão', 'necessario': 50, 'doado': 0 }
+        ]
+    };
+
+    let itensFaltantes = {
+        'banho': [
+            { 'item': 'Toalha de Banho', 'necessario': 100, 'unidade': 'unidades' },
+            { 'item': 'Sabonete', 'necessario': 200, 'unidade': 'unidades' }
+        ],
+        'sopao': [
+            { 'item': 'Arroz', 'necessario': 50, 'unidade': 'kg' },
+            { 'item': 'Feijão', 'necessario': 50, 'unidade': 'kg' }
+        ]
+    };
+
+    let historicoDoacoes = [];
+
+    function showTab(tabId) {
+        const tabs = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+
+        const buttons = document.querySelectorAll('.tab-buttons button');
+        buttons.forEach(button => button.classList.remove('active'));
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    function exibirItens() {
+        const tipoDoacao = document.getElementById('tipo-doacao').value;
+        const itemDoacao = document.getElementById('item-doacao');
+        const quantidadeInput = document.getElementById('quantidade');
+        const itensFaltantesDiv = document.getElementById('itens-faltantes');
+        const tabelaItensFaltantes = document.getElementById('lista-itens-faltantes');
+
+        itemDoacao.innerHTML = '<option value="">Selecione um item</option>';
+        itemDoacao.disabled = true;
+        quantidadeInput.disabled = true;
+        tabelaItensFaltantes.innerHTML = '';
+
+        if (!tipoDoacao) return;
+
+        const itens = itensFaltantes[tipoDoacao];
+        itensFaltantesDiv.style.display = 'block';
+
+        itens.forEach(item => {
+            const doado = doacoes[tipoDoacao].find(i => i.item === item.item).doado;
+            const quantidadeFaltante = item.necessario - doado;
+            if (quantidadeFaltante > 0) {
+                tabelaItensFaltantes.innerHTML += `
+                    <tr>
+                        <td>${item.item}</td>
+                        <td>${quantidadeFaltante}</td>
+                        <td>${item.unidade}</td>
+                    </tr>
+                `;
+                itemDoacao.innerHTML += `<option value="${item.item}">${item.item}</option>`;
+            }
+        });
+
+        itemDoacao.disabled = false;
+    }
+
+    function habilitarQuantidade() {
+        const itemDoacao = document.getElementById('item-doacao').value;
+        const quantidadeInput = document.getElementById('quantidade');
+        quantidadeInput.disabled = !itemDoacao;
+    }
+
+    function registrarDoacao() {
+        const nome = document.getElementById('nome').value;
+        const telefone = document.getElementById('telefone').value;
+        const comunidade = document.getElementById('comunidade').value;
+        const tipoDoacao = document.getElementById('tipo-doacao').value;
+        const itemDoacao = document.getElementById('item-doacao').value;
+        const quantidade = parseInt(document.getElementById('quantidade').value);
+        const errorMessage = document.getElementById('error-message');
+        const thankYouMessage = document.getElementById('thank-you-message');
+        const loading = document.getElementById('loading');
+
+        errorMessage.style.display = 'none';
+        thankYouMessage.style.display = 'none';
+        loading.style.display = 'block';
+
+        setTimeout(() => {
+            loading.style.display = 'none';
+
+            if (!nome || !telefone || !comunidade || !tipoDoacao || !itemDoacao || !quantidade) {
+                errorMessage.textContent = 'Por favor, preencha todos os campos corretamente.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            historicoDoacoes.push({
+                nome,
+                telefone,
+                comunidade,
+                tipoDoacao,
+                itemDoacao,
+                quantidade,
+                unidade: itensFaltantes[tipoDoacao].find(item => item.item === itemDoacao).unidade // Adiciona a unidade
+            });
+
+            const item = doacoes[tipoDoacao].find(i => i.item === itemDoacao);
+            if (item) {
+                item.doado += quantidade;
+            }
+
+            thankYouMessage.textContent = `Obrigado, ${nome}! Sua doação de ${quantidade} ${itemDoacao} foi registrada com sucesso!`;
+            thankYouMessage.style.display = 'block';
+
+            atualizarTotalizador();
+            atualizarHistorico();
+            exibirItens();  // Atualiza a lista de itens faltantes com a nova quantidade
+        }, 2000);
+    }
+
+    function atualizarTotalizador() {
+        const totalizadorLista = document.getElementById('totalizador-lista');
+        totalizadorLista.innerHTML = '';
+
+        Object.keys(doacoes).forEach(tipoDoacao => {
+            doacoes[tipoDoacao].forEach(item => {
+                totalizadorLista.innerHTML += `
+                    <tr>
+                        <td>${item.item}</td>
+                        <td>${item.necessario}</td>
+                        <td>${item.doado}</td> <!-- Mostra a quantidade doada -->
+                    </tr>
+                `;
+            });
+        });
+    }
+
+    function atualizarHistorico() {
+        const historicoLista = document.getElementById('historico-lista');
+        historicoLista.innerHTML = '';
+
+        historicoDoacoes.forEach(doacao => {
+            historicoLista.innerHTML += `
+                <tr>
+                    <td>${doacao.nome}</td>
+                    <td>${doacao.telefone}</td>
+                    <td>${doacao.comunidade}</td>
+                    <td>${doacao.tipoDoacao}</td>
+                    <td>${doacao.itemDoacao}</td>
+                    <td>${doacao.quantidade}</td>
+                    <td>${doacao.unidade}</td> <!-- Mostra a unidade -->
+                </tr>
+            `;
+        });
+    }
+
+    // Função para verificar a senha antes de mostrar o histórico de doações
+    function checkPasswordAndShowTab(tabId) {
+        const password = prompt("Digite a senha para acessar o histórico de doações:");
+        if (password === "1234") { // Senha fixa, pode ser alterada para algo mais seguro
+            showTab(tabId);
+        } else {
+            alert("Senha incorreta!");
+        }
+    }
+
+    // Inicializa o totalizador
+    atualizarTotalizador();
+    
+    // Função para exportar uma tabela para CSV
+    function exportToCSV(tableId, filename = 'doacoes.csv') {
+        var table = document.getElementById(tableId);
+        var rows = table.querySelectorAll('tr');
+        var csv = [];
+        
+        // Iterar pelas linhas da tabela e coletar os dados
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var cols = row.querySelectorAll('td, th');
+            var csvRow = [];
+            for (var j = 0; j < cols.length; j++) {
+                csvRow.push(cols[j].innerText.replace(/,/g, ''));  // Remove vírgulas para não quebrar o formato CSV
+            }
+            csv.push(csvRow.join(','));  // Junta os dados da linha com vírgulas
+        }
+
+        // Criar o link de download e disparar o download do arquivo CSV
+        var csvString = csv.join('\n');  // Junta todas as linhas com quebras de linha
+        var blob = new Blob([csvString], { type: 'text/csv' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+    // Configuração do Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyDaIsvwLqwD5V3TkpjPkbnQjCeGCOhUQ5MY",
+    authDomain: "teste3-58a4a.firebaseapp.com",
+    projectId: "teste3-58a4a",
+    storageBucket: "teste3-58a4a.firebasestorage.app",
+    messagingSenderId: "414063684865",
+    appId: "1:414063684865:web:8d7185ceeb373cd4507f00"
+};
+
+// Inicializa o Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+function registrarDoacao() {
+    const comunidade = document.getElementById('comunidade').value;
+    const tipoDoacao = document.getElementById('tipo-doacao').value;
+    const itemDoacao = document.getElementById('item-doacao').value;
+    const quantidade = parseInt(document.getElementById('quantidade').value);
+    const nome = document.getElementById('nome').value;
+    const telefone = document.getElementById('telefone').value;
+
+    if (!comunidade || !tipoDoacao || !itemDoacao || !quantidade || !nome || !telefone) {
+        document.getElementById('error-message').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('error-message').style.display = 'none';
+    document.querySelector('.loading').style.display = 'block';
+
+    // Registra a doação no Firestore
+    db.collection("doacoes").add({
+        comunidade: comunidade,
+        tipoDoacao: tipoDoacao,
+        itemDoacao: itemDoacao,
+        quantidade: quantidade,
+        nome: nome,
+        telefone: telefone,
+        data: new Date().toLocaleDateString()
+    })
+    .then(() => {
+        // Atualiza o totalizador
+        doacoesPorAcao[tipoDoacao] += quantidade;
+
+        // Atualiza os itens faltantes
+        let item = itensFaltantes[tipoDoacao].find(i => i.nome === itemDoacao);
+        if (item) {
+            item.quantidade -= quantidade;
+
+            // Remove o item caso a quantidade necessária seja atingida
+            if (item.quantidade <= 0) {
+                itensFaltantes[tipoDoacao] = itensFaltantes[tipoDoacao].filter(i => i.nome !== itemDoacao);
+            }
+        }
+
+        // Atualiza as abas
+        atualizarHistorico();
+        atualizarTotalizador();
+        exibirItens();
+
+        document.querySelector('.loading').style.display = 'none';
+        document.getElementById('thank-you-message').style.display = 'block';
+
+        // Limpa os campos
+        document.getElementById('comunidade').value = '';
+        document.getElementById('tipo-doacao').value = '';
+        document.getElementById('item-doacao').value = '';
+        document.getElementById('quantidade').value = '1';
+        document.getElementById('nome').value = '';
+        document.getElementById('telefone').value = '';
+    })
+    .catch((error) => {
+        console.error("Erro ao registrar doação: ", error);
+        document.querySelector('.loading').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+    });
+}
+function atualizarHistorico() {
+    const historicoTabela = document.getElementById('historico-tabela');
+    historicoTabela.innerHTML = '';
+
+    db.collection("doacoes").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const doacao = doc.data();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${doacao.data}</td>
+                <td>${doacao.comunidade}</td>
+                <td>${doacao.tipoDoacao}</td>
+                <td>${doacao.itemDoacao}</td>
+                <td>${doacao.quantidade}</td>
+                <td>${doacao.nome}</td>
+                <td>${doacao.telefone}</td>
+            `;
+            historicoTabela.appendChild(row);
+        });
+    });
+}
+function atualizarTotalizador() {
+    const totalizadorTabela = document.getElementById('totalizador-tabela');
+    totalizadorTabela.innerHTML = '';
+
+    db.collection("doacoes").get().then((querySnapshot) => {
+        const totalizador = { banho: 0, sopa: 0 };
+
+        querySnapshot.forEach((doc) => {
+            const doacao = doc.data();
+            totalizador[doacao.tipoDoacao] += doacao.quantidade;
+        });
+
+        totalizadorTabela.innerHTML = `
+            <tr><td>Banho Solidário</td><td>${totalizador.banho}</td></tr>
+            <tr><td>Sopão Solidário</td><td>${totalizador.sopa}</td></tr>
+        `;
+    });
+}
+</script>
+<footer>
+    <div class="realizacao-container">
+        <!-- Logo Paróquia São Maximiliano Kolbe -->
+        <img src="imagens/logo_paroquia.png" alt="Logo Paróquia São Maximiliano Kolbe" class="logo-realizacao">
+
+        <div class="legendas">
+            <p><strong>Realização</strong></p>
+            <p>Paróquia São Maximiliano Kolbe - Vinhais - São Luís - Maranhão</p>
+        </div>
+    </div>
+    <p>&copy; 2024 Paróquia São Maximiliano Kolbe. Todos os direitos reservados.</p>
+</footer>
+</body>
+</html>
